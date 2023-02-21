@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+
+    commissioner-php-cli:
+        build:
+            context: ./
+            dockerfile: ./docker/development/php-cli.docker
+        volumes:
+            - ./:/app
+            - composer:/root/.composer/cache
+            - ./docker/development/php/default.ini:/usr/local/etc/php/conf.d/default.ini
+            - ./docker/development/php/xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+
+volumes:
+    composer:
+
+networks:
+    default:
+        external:
+            name: nginx-proxy
