@@ -34,38 +34,28 @@ $container = new DI\Container([
     'commission_rate_eu' => (float)getenv('COMMISSION_EU'),
     'commission_rate_default' => (float)getenv('COMMISSION_DEFAULT'),
 
-    Input::class => new Input($argv),
+    Input::class => DI\factory(fn() => new Input($argv)),
 
     HttpClientInterface::class             => DI\factory(fn () => HttpClient::create()),
     TransactionsRepository::class          => DI\get(PlainFileTransactionsRepository::class),
-    PlainFileTransactionsRepository::class => DI\factory(function (ContainerInterface $container)
-    {
-        /** @var Input $input */
-        $input = $container->get(Input::class);
+    CacheItemPoolInterface::class => DI\factory(fn() => new ArrayAdapter()),
 
+    PlainFileTransactionsRepository::class => DI\factory(function (Input $input)
+    {
         return new PlainFileTransactionsRepository($input->getInputFilePath());
     }),
 
-    CacheItemPoolInterface::class => DI\factory(function (ContainerInterface $container)
-    {
-        return new ArrayAdapter();
-    }),
+    BinNumberCountryResolver::class => DI\factory(
+        fn (
+            ApiBinNumberCountryResolver $apiResolver,
+            CacheItemPoolInterface $cache,
+            $ttl
+        ) => new CacheableBinNumberCountryResolver($apiResolver, $cache, $ttl)
+    )->parameter('ttl', DI\get('bin.api_cache_ttl')),
 
-    BinNumberCountryResolver::class => DI\factory(function (ContainerInterface $container)
-    {
-        $resolverToDecorate = $container->get(ApiBinNumberCountryResolver::class);
-
-        return new CacheableBinNumberCountryResolver(
-            $resolverToDecorate,
-            $container->get(CacheItemPoolInterface::class),
-            $container->get('bin.api_cache_ttl')
-        );
-    }),
-
-    ApiBinNumberCountryResolver::class => DI\create()->constructor(
-        DI\get(HttpClientInterface::class),
-        DI\get('bin.api_url')
-    ),
+    ApiBinNumberCountryResolver::class => DI\factory(
+        fn (HttpClientInterface $http, $url) => new ApiBinNumberCountryResolver($http, $url)
+    )->parameter('url', DI\get('bin.api_url')),
 
     ExchangeRateProvider::class => DI\factory(function (ContainerInterface $container)
     {
