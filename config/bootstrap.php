@@ -2,7 +2,7 @@
 
 use Symfony\Component\Dotenv\Dotenv;
 
-$dir = dirname(__DIR__, 2);
+$dir = dirname(__DIR__, 1);
 
 require_once $dir.'/vendor/autoload.php';
 

@@ -13,9 +13,9 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 class ApiExchangeRateProvider implements ExchangeRateProvider
 {
     public function __construct(
-        private HttpClientInterface $client,
-        private string $apiUrl,
-        private string $apiKey
+        private readonly HttpClientInterface $client,
+        private readonly string $apiUrl,
+        private readonly string $apiKey
     ) {}
 
     public function getRate(Currency $base, Currency $to): float
@@ -24,7 +24,7 @@ class ApiExchangeRateProvider implements ExchangeRateProvider
 
             $response = $this->client->request('GET', $this->apiUrl, [
                 'headers' => ['apiKey' => $this->apiKey],
-                'timeout' => 5
+                'timeout' => 10
             ]);
 
             $data = $response->toArray();

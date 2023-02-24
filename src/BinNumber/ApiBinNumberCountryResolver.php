@@ -13,8 +13,8 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 class ApiBinNumberCountryResolver implements BinNumberCountryResolver
 {
     public function __construct(
-        private HttpClientInterface $client,
-        private string $apiUrl
+        private readonly HttpClientInterface $client,
+        private readonly string $apiUrl
     ) {}
 
     public function resolveCountry(BinNumber $bin): ?string
